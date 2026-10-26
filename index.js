@@ -1,10 +1,13 @@
 import express from "express";
-import { MongoClient } from 'mongodb';
-import 'dotenv/config'
+import { MongoClient } from "mongodb";
+import "dotenv/config";
+import cors from "cors";
 
 const app = express();
 const PORT = 8000;
 
+app.use(cors());
+app.use(express.json());
 
 const client = new MongoClient(process.env.MONGODB_URI);
 
@@ -18,8 +21,20 @@ export async function connectToMongoDB() {
   }
 }
 
-connectToMongoDB()
+const mongoClient = await connectToMongoDB();
 
+const db = mongoClient.db("wanderlust");
+const destinationCollection = db.collection("destination");
+
+//post the form data from client-server:
+app.post("/add-destination", async (req, res) => {
+  const data = req.body;
+
+  const result = await destinationCollection.insertOne(data);
+  console.log(result);
+
+  res.send(result);
+});
 
 //get the http req: http://localhost:8000/
 app.get("/", (req, res) => {
